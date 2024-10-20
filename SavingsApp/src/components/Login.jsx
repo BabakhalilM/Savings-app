@@ -73,7 +73,7 @@ const Login = () => {
               required
             />
           </FormControl>
-          <Button type="submit" >Login</Button>
+          <Button type="submit" bg={"green.400"}>Login</Button>
         </VStack>
       </form>
       <br />

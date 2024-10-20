@@ -1,6 +1,5 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import React, { useState } from 'react';
-import api from './api';
 import { FormControl, FormLabel, Box, Button, Input, Text, VStack, useToast } from '@chakra-ui/react';
 
 const Register = () => {
@@ -9,40 +8,15 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const toast = useToast();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await api.post('/register', { name, email, password });
-      console.log(response);
-      
-      toast({
-        title: 'Registration successful!',
-        description: "You can now log in.",
-        status: 'success',
-        duration: 2000,
-        isClosable: true,
-      });
+  const navigate = useNavigate();
 
-      setName('');
-      setEmail('');
-      setPassword('');
-      
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 1000);
 
-    } catch (err) {
-      toast({
-        title: 'Registration failed.',
-        description: "Please try again.",
-        status: 'error',
-        duration: 2000,
-        isClosable: true,
-      });
-      console.error(err);
-    }
+  const handleSubmit = () => {
+    navigate('/account', { state: { email, name, password } });
+
   };
 
+  
   return (
     <Box maxW="sm" mx="auto" mt="10" p="6" boxShadow="md" borderRadius="md" >
       <Text fontSize="2xl">Register</Text>
@@ -81,7 +55,7 @@ const Register = () => {
             />
           </FormControl>
           
-          <Button type="submit" >Register</Button>
+          <Button type="submit" color={"blue.500"} >Add Account</Button>
         </VStack>
       </form>
       <br />

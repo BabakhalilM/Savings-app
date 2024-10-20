@@ -2,15 +2,17 @@ import {} from 'dotenv/config';
 import express from 'express';
 import connectDB from './config/db.js';
 import loginrouter from './routes/loginrouter.js';
-import potrouter from './routes/potsrouter.js';
 import cors from 'cors';
+import userRouter from './routes/userrouter.js';
 
 const app = express();
 app.use(express.json()); 
 app.use(cors());
 
 app.use('/api', loginrouter);
-app.use('/api/pot',potrouter);
+
+app.use('/api',userRouter);
+
 app.use('/',(req,res)=>{
     res.send("This is home router");
 })

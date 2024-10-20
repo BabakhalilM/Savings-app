@@ -1,12 +1,34 @@
-import mongoose from "mongoose";
+
+import mongoose from 'mongoose'; 
 
 const savingPotSchema = new mongoose.Schema({
-    potname: { type: String, required: true }, 
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, 
-    balance: { type: Number, default: 0 }, 
-    target:{type: Number , required:false },
-  }, { timestamps: true });
-  
-  const SavingPot = mongoose.model('pots', savingPotSchema);
+  potPurpose: { 
+    type: String, 
+    required: true 
+  },
+  targetAmount: { 
+    type: Number, 
+    required: false 
+  },
+  currentBalance: { 
+    type: Number, 
+    default: 0 
+  },
+  imoji: { 
+    type: String, 
+    required: false 
+  },
+  color: { 
+    type: String, 
+    required: false 
+  },
+  user: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  }
+}, { timestamps: true });
+
+const SavingPot = mongoose.model('SavingPot', savingPotSchema);
+
 export default SavingPot;
-  

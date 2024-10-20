@@ -1,11 +1,10 @@
+
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    unique: true,
-    trim: true
   },
   password: {
     type: String,
@@ -13,17 +12,33 @@ const userSchema = new mongoose.Schema({
   },
   email:{
     type : String,
-    required:true
+    unique: true,
+    required: true
   },
-  AcountNo:{
-    
+  accountNumber: {
+    type: Number, 
+    required: true,
+    unique: true
   },
-  wallet: {
-    balance: { type: Number, default: 0 },
-    
+  expDate: {
+    type: Date, 
+    required: false
   },
-  pots: [{ type: mongoose.Schema.Types.ObjectId, ref: 'pots' }]
-}, { timestamps: true });
+  totalBalance: {
+    type: Number,
+    default: 0, 
+    required: true
+  },
+  pots: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'SavingPot' 
+  }],
+  history: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Transaction'  
+  }]
+});
 
-const user = mongoose.model('user', userSchema);
-export default user;
+const User = mongoose.model('User', userSchema);
+
+export default User;

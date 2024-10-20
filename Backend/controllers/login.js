@@ -1,35 +1,38 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import user from '../models/usermodel.js';
+import User from '../models/usermodel.js';
 
 const generateToken = (user) => {
     return jwt.sign(
         { id: user._id, email: user.email, name: user.name },
         process.env.JWT_SECRET,
         { expiresIn: '5h' }
-    );
+    );  
 };
 
 export const register = async (req, res) => {
     try {
-        const { name, email, password, } = req.body;
+        const { name, email, password, accountNumber, expDate } = req.body;
         console.log("registration password", password);
 
-        if (!name || !email || !password) {
+        if (!name || !email || !password || !accountNumber || !expDate) {
             return res.status(400).send('Invalid request data');
         }
 
-        const userExist = await user.findOne({ email });
-
+        const userExist = await User.findOne({ email });
+        console.log(userExist);
         if (!userExist) {
             const hashedPassword = await bcrypt.hash(password, 10); 
             console.log("register hash", hashedPassword);
 
-            const data = new user({ name, email, password: hashedPassword, wallet:{balance:0},pots:[]});
+            const data = new User({ name, email, password: hashedPassword,accountNumber,expDate,totalBalance:0,pots:[],history:[] });
+            
+            console.log("Data check",data);
             await data.save();
-            res.status(201).json({ msg: "Register successful", data });
+            
+            res.status(201).json({ message: "Register successful", data });
         } else {
-            res.status(400).send('User already exists, try to login');
+            res.status(400).send({message:'User already exists, try to login'});
         }
     } catch (err) {
         console.error(err);
@@ -46,7 +49,7 @@ export const login = async (req, res) => {
             return res.status(400).send("Email and password required");
         }
 
-        const userExist = await user.findOne({ email });
+        const userExist = await User.findOne({ email });
 
         if (userExist) {
             try {
