@@ -16,7 +16,8 @@ const Login = () => {
 
       if (response.data && response.data.accessToken) {
         const { accessToken} = response.data;
-        
+        console.log(response.data);
+        localStorage.setItem("userid",response.data.userid);
         localStorage.setItem('accessToken', accessToken);
         const user=email;
         localStorage.setItem('user',user);
@@ -30,7 +31,7 @@ const Login = () => {
         });
 
         setTimeout(() => {
-          window.location.href = '/';
+           window.location.href = '/dashboard';
         }, 1000);
       } else {
         throw new Error('Invalid response format');

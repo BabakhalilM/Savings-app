@@ -61,7 +61,7 @@ export const login = async (req, res) => {
                     await userExist.save();
 
                     console.log("loginsuccesss");
-                    res.status(200).json({ message: 'Login successful', accessToken });
+                    res.status(200).json({ message: 'Login successful',userid:userExist._id, accessToken });
                 } else {
                     console.log("incorrect password");
                     res.status(400).send("Incorrect password");

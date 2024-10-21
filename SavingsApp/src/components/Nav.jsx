@@ -19,7 +19,7 @@ const Nav = () => {
   };
 
   return (
-    <Box as="nav" borderBottom="1px solid" borderColor="gray.200" pt={10} pb={10}>
+    <Box as="nav" borderBottom="1px solid" borderColor="gray.200" pt={5} pb={5}>
       <HStack justifyContent="space-between" maxW="1200px" mx="auto" pr={6} pl={6}>
         <Heading as="h1" size="lg" color="blue.500">
           Coins Stash

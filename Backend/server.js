@@ -4,6 +4,7 @@ import connectDB from './config/db.js';
 import loginrouter from './routes/loginrouter.js';
 import cors from 'cors';
 import userRouter from './routes/userrouter.js';
+import savingPlanRouter from './routes/savingPlanRoutes.js';
 
 const app = express();
 app.use(express.json()); 
@@ -13,9 +14,7 @@ app.use('/api', loginrouter);
 
 app.use('/api',userRouter);
 
-app.use('/',(req,res)=>{
-    res.send("This is home router");
-})
+app.use('/api', savingPlanRouter);
 
 const PORT = process.env.PORT || 5000;
 

@@ -5,6 +5,7 @@ import Nav from './components/Nav'
 import Home from './components/Home'
 import { Box } from '@chakra-ui/react'
 import BankDeatails from './components/BankDeatails'
+import { DashBoard } from './components/DashBoard'
 
 function App() {
 
@@ -16,6 +17,7 @@ function App() {
           <Route path='/login' element={<Login />} />
           <Route path='/register' element={<Register />} />
           <Route path='/account' element={<BankDeatails/>}/>
+          <Route path='/dashboard' element={<DashBoard/>}/>
         </Routes>
       </Box>
   )
