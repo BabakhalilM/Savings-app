@@ -35,17 +35,6 @@ savingPlanRouter.post(`/user/:userId/savingplan`, protect,async (req, res) => {
     }
 });
 
-savingPlanRouter.get('/user/:id/savingplan',protect, async (req, res) => {
-    try {
-        const user = await User.findById(req.params.id).populate('pots');
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        res.json(user.pots);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
 savingPlanRouter.patch('/user/:userId/savingplan/:potId',protect, async (req, res) => {
     const { potId, userId } = req.params;
     const { currentBalance } = req.body;
@@ -73,18 +62,23 @@ savingPlanRouter.patch('/user/:userId/savingplan/:potId',protect, async (req, re
             potId: potId,
             date: new Date()
         });
-        console.log("traansaction",transaction);
+        console.log("traansaction patch",transaction);
+        
         user.history.push(transaction);
-        await transaction.save();
-        await pot.save();
             
+        await transaction.save();
+        await user.save(); 
+        console.log("user after saved",user);
+
+        await pot.save();
+
+
         res.json({ message: 'Saving plan balance updated', pot,transaction });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
-
-savingPlanRouter.get('/user/:userId/savingplan/:potId',protect, async (req, res) => {
+savingPlanRouter.get('/user/:userId/savingplan/:potId', async (req, res) => {
     const { userId, potId } = req.params;
 
     try {
@@ -107,6 +101,7 @@ savingPlanRouter.get('/user/:userId/savingplan/:potId',protect, async (req, res)
 
 
 
+
 savingPlanRouter.delete('/user/:userId/savingplan/:potId', protect,async (req, res) => {
     const {potId, userId} = req.params;
     try {
@@ -116,19 +111,22 @@ savingPlanRouter.delete('/user/:userId/savingplan/:potId', protect,async (req, r
         if (!pot) return res.status(404).json({ message: 'Saving plan not found' });
         await SavingPot.deleteOne({ _id: potId });
         user.pots = user.pots.filter(potId => potId.toString() !== pot._id.toString());
-        await user.save();
         
         const transaction = new Transaction({
             email:req.user.email,
-            type: "closing_pot", 
+            type: "deposit", 
             amount:currentBalance,
-            from: "saving_pot", 
-            to: "wallet",
+            from: "walete", 
+            to: "saving_pot",
             potId: potId,
             date: new Date()
         });
-
-        await transaction.save();
+        console.log("traansaction",transaction);
+        
+        user.history.push(transaction);
+            
+        await user.save(); 
+        console.log(user);  
 
         res.json({ message: 'Saving plan deleted successfully' });
     } catch (error) {

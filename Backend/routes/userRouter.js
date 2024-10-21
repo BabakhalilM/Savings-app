@@ -5,6 +5,7 @@ import Transaction from '../models/historymodel.js';
 import { protect } from '../middleware/auth.js';
 
 const userRouter = express.Router();
+
 userRouter.get('/user',protect, async (req, res) => {
     try {
         const users = await User.find().populate('pots').populate('history');
@@ -61,6 +62,22 @@ userRouter.patch('/user/:id', protect,async (req, res) => {
             // if (targetAmount !== undefined) pot.target = targetAmount;
             // await pot.save();
             // await user.save(); 
+
+            const transaction = new Transaction({
+                email:req.user.email,
+                type: "transfer", 
+                amount:totalBalance,
+                from: "Bank and deposite Or adding", 
+                to: "walete",
+                potId: potId,
+                date: new Date()
+            });
+            console.log("traansaction",transaction);
+            
+            user.history.push(transaction);
+                
+            await user.save(); 
+
             res.json({ message: 'User or Saving plan updated successfully', user });
         }
     } catch (error) {
@@ -86,8 +103,25 @@ userRouter.delete('/users/:id',protect, async (req, res) => {
     const {balance} = req.body;
     try {
         const updateBalance = await User.findByIdAndUpdate(userId, {totalBalance : balance}, {new: true});
+
         if(updateBalance){
+            
+        const transaction = new Transaction({
+            email:req.user.email,
+            type: "transfer", 
+            amount:balance,
+            from: "walete", 
+            to: "saving_pot",
+            date: new Date()
+        });
+        console.log("traansaction",transaction);
+        
+        updateBalance.history.push(transaction);
+            
+        await updateBalance.save();
+
             res.status(200).json({ message: 'Balance updated successfully', user: updateBalance });
+            
         }else{
             res.status(404).json({ message: 'User not found' });
         }

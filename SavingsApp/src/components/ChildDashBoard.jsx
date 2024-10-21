@@ -49,7 +49,7 @@ export const ChildDashBoard = ({data, setUser}) => {
     <div className='main-container'>
       <Greeting name={name} />
       <div className='balance-donut-container'>
-      <Balance totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} accNum={accountNumber} expDate={expDate} updateBalance={updateBalance} savingsData={data.pots} />
+      <Balance totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} accNum={accountNumber} expDate={expDate} updateBalance={updateBalance} />
       </div>
       <div className='button-action-container'>
         <SendMoney totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} updateBalance={updateBalance}/>

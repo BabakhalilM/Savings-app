@@ -16,7 +16,7 @@ export const SaveButton = ({totalBalance, onBalanceUpdate, updateBalance}) => {
   const [goal, setGoal] = useState('');
   const [emoji, setEmoji] = useState('');
   const toast = useToast();
-  const userIdFromLocalStorage = localStorage.getItem("userid")
+  const userIdFromLocalStorage = localStorage.getItem("userid");
 
   useEffect(() => {
     setBalance(totalBalance || 0);

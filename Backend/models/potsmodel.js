@@ -32,3 +32,5 @@ const savingPotSchema = new mongoose.Schema({
 const SavingPot = mongoose.model('SavingPot', savingPotSchema);
 
 export default SavingPot;
+
+

@@ -34,9 +34,8 @@ h3 {
 .plans-list {
     display: flex;
     gap: 1rem;
-    justify-content: space-between;
     margin-top: 1.25rem;
-    flex-wrap: wrap; /* Allows wrapping in smaller screens */
+    flex-wrap: wrap; 
 }
 
 .plan-card {

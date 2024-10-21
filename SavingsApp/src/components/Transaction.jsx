@@ -1,12 +1,34 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../styles/transaction.css';
+import api from './api';
 
 export const Transaction = () => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-
+  const [historydata,setHistorydata]=useState([]);
   const toggleHistory = () => {
     setIsHistoryOpen(!isHistoryOpen);
   };
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const userIdFromLocalStorage = localStorage.getItem("userid");
+
+    useEffect(() => {
+        const fetchUserdata = async () => {
+            try {
+                setLoading(true);
+                const res = await api.get(`/history`)
+                setHistorydata(res.data);
+                console.log(historydata);
+                console.log(res.data);
+                setLoading(false);
+            } catch (error) {
+                setError(error);
+                console.log(error);
+            }
+        }
+        fetchUserdata();
+    }, []);
+
 
   return (
     <div>
