@@ -2,14 +2,16 @@ import React, { useEffect, useState } from 'react';
 import '../styles/balance.css';
 import { useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, Button, Input, useToast } from '@chakra-ui/react';
 import { DonutChart } from './DonutChart';
+import axios from 'axios';
 
-export const Balance = ({totalBalance, onBalanceUpdate, accNum, expDate, updateBalance, savingsData}) => {
+export const Balance = ({totalBalance, onBalanceUpdate, accNum, expDate, updateBalance}) => {
   const { onClose, onOpen, isOpen } = useDisclosure();
   const [balance, setBalance] = useState(totalBalance);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [addMoney, setAddMoney] = useState('');
   const toast = useToast();
+  const[potData, setPotData] = useState([]);
   const userIdFromLocalStorage = localStorage.getItem("userid")
 
   useEffect(() => {
@@ -30,6 +32,19 @@ export const Balance = ({totalBalance, onBalanceUpdate, accNum, expDate, updateB
   }
 
   const formattedDate = formatDate(expDate);
+
+  useEffect(() => {
+    const fetchPotData = async () => {
+        try {
+            const res = await axios.get(`http://localhost:5000/api/user/${userIdFromLocalStorage}/savingplan`)
+            setPotData(res.data);
+            console.log(res.data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    fetchPotData();
+}, []);
 
   const handleAddMoney = async () => {
       try {
@@ -78,7 +93,7 @@ export const Balance = ({totalBalance, onBalanceUpdate, accNum, expDate, updateB
           <button className='add-fund-button' onClick={onOpen}>Add Money</button>
         </div>
         <div className='donut-style'>
-        <DonutChart savingsData={savingsData} />
+        <DonutChart savingsData={potData} />
         </div>
       </div>
 
