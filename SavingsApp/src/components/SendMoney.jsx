@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, Button, Input, useToast } from '@chakra-ui/react';
 import '../styles/buttonStyles.css';
 
@@ -11,6 +11,10 @@ export const SendMoney = ({totalBalance, onBalanceUpdate, updateBalance}) => {
   const [amount, setAmount] = useState('');
   const toast = useToast();
   const userIdFromLocalStorage = localStorage.getItem("userid")
+
+  useEffect(() => {
+    setBalance(totalBalance)
+  }, [totalBalance])
 
   const handleSendMoney = async () => {
     if (amount > totalBalance) {
