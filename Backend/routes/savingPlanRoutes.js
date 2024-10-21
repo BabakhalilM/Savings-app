@@ -2,12 +2,14 @@ import express from 'express'
 import User from '../models/usermodel.js';
 import SavingPot from '../models/potsmodel.js';
 import mongoose from 'mongoose';
+import Transaction from '../models/historymodel.js';
+import { protect } from '../middleware/auth.js';
 
 const savingPlanRouter = express.Router();
 
-savingPlanRouter.post(`/user/:userId/savingplan`, async (req, res) => {
+savingPlanRouter.post(`/user/:userId/savingplan`, protect,async (req, res) => {
     const { potPurpose, targetAmount, currentBalance, imoji, color } = req.body;
-    
+
     try {
         const user = await User.findById(req.params.userId);
         if (!user) {
@@ -33,7 +35,7 @@ savingPlanRouter.post(`/user/:userId/savingplan`, async (req, res) => {
     }
 });
 
-savingPlanRouter.get('/user/:id/savingplan', async (req, res) => {
+savingPlanRouter.get('/user/:id/savingplan',protect, async (req, res) => {
     try {
         const user = await User.findById(req.params.id).populate('pots');
         if (!user) return res.status(404).json({ message: 'User not found' });
@@ -44,7 +46,7 @@ savingPlanRouter.get('/user/:id/savingplan', async (req, res) => {
     }
 });
 
-savingPlanRouter.patch('/user/:userId/savingplan/:potId', async (req, res) => {
+savingPlanRouter.patch('/user/:userId/savingplan/:potId',protect, async (req, res) => {
     const { potId, userId } = req.params;
     const { currentBalance } = req.body;
 
@@ -53,6 +55,7 @@ savingPlanRouter.patch('/user/:userId/savingplan/:potId', async (req, res) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         const pot = await SavingPot.findById(potId);
+        console.log("pot update",pot);
         if (!pot) return res.status(404).json({ message: 'Saving plan not found' });
 
         if (currentBalance !== undefined) {
@@ -60,15 +63,28 @@ savingPlanRouter.patch('/user/:userId/savingplan/:potId', async (req, res) => {
         } else {
             return res.status(400).json({ message: 'currentBalance is required' });
         }
-
+        console.log("creting transaction");
+        const transaction = new Transaction({
+            email:req.user.email,
+            type: "deposit", 
+            amount:currentBalance,
+            from: "walete", 
+            to: "saving_pot",
+            potId: potId,
+            date: new Date()
+        });
+        console.log("traansaction",transaction);
+        user.history.push(transaction);
+        await transaction.save();
         await pot.save();
-        res.json({ message: 'Saving plan balance updated', pot });
+            
+        res.json({ message: 'Saving plan balance updated', pot,transaction });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
-savingPlanRouter.get('/user/:userId/savingplan/:potId', async (req, res) => {
+savingPlanRouter.get('/user/:userId/savingplan/:potId',protect, async (req, res) => {
     const { userId, potId } = req.params;
 
     try {
@@ -91,7 +107,7 @@ savingPlanRouter.get('/user/:userId/savingplan/:potId', async (req, res) => {
 
 
 
-savingPlanRouter.delete('/user/:userId/savingplan/:potId', async (req, res) => {
+savingPlanRouter.delete('/user/:userId/savingplan/:potId', protect,async (req, res) => {
     const {potId, userId} = req.params;
     try {
         const user = await User.findById(userId);
@@ -101,6 +117,19 @@ savingPlanRouter.delete('/user/:userId/savingplan/:potId', async (req, res) => {
         await SavingPot.deleteOne({ _id: potId });
         user.pots = user.pots.filter(potId => potId.toString() !== pot._id.toString());
         await user.save();
+        
+        const transaction = new Transaction({
+            email:req.user.email,
+            type: "closing_pot", 
+            amount:currentBalance,
+            from: "saving_pot", 
+            to: "wallet",
+            potId: potId,
+            date: new Date()
+        });
+
+        await transaction.save();
+
         res.json({ message: 'Saving plan deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });

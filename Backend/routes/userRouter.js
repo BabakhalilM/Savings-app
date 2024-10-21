@@ -2,9 +2,10 @@ import express from 'express'
 import SavingPot from '../models/potsmodel.js';
 import User from '../models/usermodel.js';
 import Transaction from '../models/historymodel.js';
+import { protect } from '../middleware/auth.js';
 
 const userRouter = express.Router();
-userRouter.get('/user', async (req, res) => {
+userRouter.get('/user',protect, async (req, res) => {
     try {
         const users = await User.find().populate('pots').populate('history');
         res.json(users);
@@ -13,7 +14,7 @@ userRouter.get('/user', async (req, res) => {
     }
 });
 
-userRouter.get('/user/:id', async (req, res) => {
+userRouter.get('/user/:id', protect, async (req, res) => {
     try {
         const user = await User.findById(req.params.id).populate('pots').populate('history');
         if (!user) return res.status(404).json({message: "User not found"});
@@ -23,7 +24,7 @@ userRouter.get('/user/:id', async (req, res) => {
     }
 });
 
-userRouter.post('/user', async (req, res) => {
+userRouter.post('/user',protect, async (req, res) => {
     const {name, email, password, accountNumber, totalBalance, pots, history} = req.body;
     const newUser = new User({
         name,
@@ -44,7 +45,7 @@ userRouter.post('/user', async (req, res) => {
     }
 });
 
-userRouter.patch('/user/:id', async (req, res) => {
+userRouter.patch('/user/:id', protect,async (req, res) => {
     const { totalBalance, potId, potBalance, targetAmount } = req.body;
     try {
         const user = await User.findById(req.params.id);
@@ -67,7 +68,7 @@ userRouter.patch('/user/:id', async (req, res) => {
     }
 })
 
-userRouter.delete('/users/:id', async (req, res) => {
+userRouter.delete('/users/:id',protect, async (req, res) => {
     try {
       const user = await User.findById(req.params.id);
   
@@ -80,7 +81,7 @@ userRouter.delete('/users/:id', async (req, res) => {
     }
   });
 
-  userRouter.patch('/user/:id/balance', async (req, res) => {
+  userRouter.patch('/user/:id/balance',protect, async (req, res) => {
     const userId = req.params.id;
     const {balance} = req.body;
     try {

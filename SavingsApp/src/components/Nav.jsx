@@ -9,11 +9,12 @@ const Nav = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    setIsAuthenticated(!!token); 
+    setIsAuthenticated(!!token);
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
+    localStorage.removeItem('userid');
     setIsAuthenticated(false);
     navigate('/'); 
   };
@@ -31,7 +32,18 @@ const Nav = () => {
           </Text>
 
           {isAuthenticated ? (
+            <>
             <Text
+            as={Link} 
+            to='/dashboard'
+            fontSize="lg"
+            _hover={{ color: "blue.500" }}
+            fontWeight={900}
+          >
+            DashBoard
+          </Text>
+          
+          <Text
               as={Link} 
               to='/'
               onClick={handleLogout}
@@ -41,6 +53,7 @@ const Nav = () => {
             >
               Logout
             </Text>
+          </>
           ) : (
             <>
               <Text

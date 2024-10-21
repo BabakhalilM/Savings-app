@@ -6,7 +6,8 @@ import { WithdrawMoney } from './WithdrawMoney';
 import { SaveButton } from './SaveButton';
 import { Was } from './Was';
 import { SavingPlans } from './SavingPlans';
-import axios from 'axios';
+// import axios from 'axios';
+import api from './api';
 import { DonutChart } from './DonutChart';
 import '../App.css'
 
@@ -26,7 +27,7 @@ export const ChildDashBoard = ({data, setUser}) => {
   if (!isNaN(moneyChange) && moneyChange > 0) {
     const newBalance = isAddition ? currentBalance + moneyChange : currentBalance - moneyChange;
     try {
-      const res = await axios.patch(`http://localhost:5000/api/user/${userId}/balance`, {
+      const res = await api.patch(`/user/${userId}/balance`, {
         balance: newBalance
       });
       setCurrentBalance(res.data.user.totalBalance);

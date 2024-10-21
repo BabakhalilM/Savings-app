@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Greeting } from './Greeting';
 import { ChildDashBoard } from './ChildDashBoard';
 import { SavingPlansProvider } from './Context';
+import api from './api';
 
 
 export const DashBoard = () => {
@@ -14,7 +15,7 @@ export const DashBoard = () => {
         const fetchUserdata = async () => {
             try {
                 setLoading(true);
-                const res = await axios.get(`http://localhost:5000/api/user/${userIdFromLocalStorage}`)
+                const res = await api.get(`/user/${userIdFromLocalStorage}`)
                 setUser(res.data);
                 console.log(res.data);
                 setLoading(false);

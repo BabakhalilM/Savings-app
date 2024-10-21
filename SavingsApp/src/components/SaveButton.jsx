@@ -3,6 +3,7 @@ import { useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFoo
 import '../styles/buttonStyles.css';
 import axios from 'axios';
 import { SavingPlans } from './SavingPlans';
+import api from './api';
 const generateRandomColor = () => {
   return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
 };
@@ -44,7 +45,7 @@ export const SaveButton = ({totalBalance, onBalanceUpdate, updateBalance}) => {
     };
 
     try {
-      const res = await axios.post(`http://localhost:5000/api/user/${userIdFromLocalStorage}/savingplan`, savingPlan);
+      const res = await api.post(`/user/${userIdFromLocalStorage}/savingplan`, savingPlan);
       console.log("created", res.data);
       const newBalance = await updateBalance(userIdFromLocalStorage, balance, amount, false)
       onBalanceUpdate(newBalance);
