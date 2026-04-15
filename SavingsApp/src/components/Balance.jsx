@@ -19,10 +19,6 @@ export const Balance = ({ totalBalance, onBalanceUpdate, accNum, expDate, update
     setBalance(totalBalance || 0);
   }, [totalBalance]);
 
-  // useEffect(() => {
-  //   console.log("rendering....");
-  //   console.log(totalBalance);
-  // });
 
   function formatDate(expDate) {
     const date = new Date(expDate);
@@ -57,21 +53,14 @@ export const Balance = ({ totalBalance, onBalanceUpdate, accNum, expDate, update
 
       await api.post('/history', {
         email: email,
-        type: "credited",
-        amount: addMoney,
-        from: "Bank",
-        to: "Wallet",
-        date: new Date()
-      });
-
-      onHistoryChange({
-        email: email,
         type: "Credited",
         amount: addMoney,
         from: "Bank",
         to: "Wallet",
         date: new Date()
       });
+
+      await onHistoryChange();
       setAddMoney("");
       onClose();
       toast({

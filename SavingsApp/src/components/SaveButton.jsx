@@ -269,13 +269,15 @@ export const SaveButton = ({
         savingPlan
       );
       console.log("created", res.data);
-      const newBalance = await updateBalance(
-        userId,
-        totalBalance,
-        currentAmount,
-        false
-      );
-      onBalanceUpdate(newBalance);
+      if(currentAmount>0){
+        const newBalance = await updateBalance(
+          userId,
+          totalBalance,
+          currentAmount,
+          false
+        );
+        onBalanceUpdate(newBalance);
+      }
     } catch (error) {
       console.log(error.message);
     } finally {

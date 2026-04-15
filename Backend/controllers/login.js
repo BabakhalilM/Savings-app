@@ -25,7 +25,7 @@ export const register = async (req, res) => {
         const userExist = await User.findOne({ email });
         console.log(userExist);
         if (!userExist) {
-            const hashedPassword = await bcrypt.hash(password, 1);
+            const hashedPassword = await bcrypt.hash(password, 10);
             console.log("register hash", hashedPassword);
             const newuser={name,email,password:hashedPassword,accountNumber,expDate,totalBalance:0,pots:[],history:[]};
             if(role){
@@ -70,16 +70,16 @@ export const login = async (req, res) => {
 
                     res.cookie('accessToken', accessToken, {
                         httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production', // true in production
-                        sameSite: process.env.NODE_ENV === 'production'? 'none':'Lax',
+                        secure: process.env.NODE_ENV === 'production',
+                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
                         maxAge: 30 * 24 * 60 * 60 * 1000, // Expires in 30 days
                         path: '/',
                     });
 
                     res.cookie('role', role, {
-                        httpOnly: true, // Accessible to JavaScript if needed
-                        secure: process.env.NODE_ENV === 'production', // true in production
-                        sameSite: process.env.NODE_ENV === 'production' ? 'None':'Lax',
+                        httpOnly: true,
+                        secure: process.env.NODE_ENV === 'production',
+                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
                         maxAge: 30 * 24 * 60 * 60 * 1000, // Expires in 30 days
                         path: '/',
                     });
@@ -112,10 +112,10 @@ export const login = async (req, res) => {
 export const logout = (req, res) => {
     
     res.clearCookie('accessToken', {
-        httpOnly: true,  // Ensures cookie is not accessible via JavaScript
-        secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
-        sameSite: process.env.NODE_ENV === 'production' ? 'None':'Lax', // Cookie is sent only from the same domain
-        path: '/', // Path where the cookie is set (root of the domain)
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+        path: '/',
     });
  
     res.status(200).send("Logged out successfully");

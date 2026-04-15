@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/Nav.css";
 import api from "./api";
@@ -11,23 +11,6 @@ const Nav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   async function fetchAuthStatus() {
-  //     try {
-  //       const response = await api.get("/api/auth/check");
-  //       console.log("data check" , response.data);
-  //       setIsAuthenticated(response.data.isAuthenticated);
-  //       console.log("isauthenticated",isAuthenticated);
-  //       setRole(response.data.role);
-  //       console.log("get function");
-  //     } catch (error) {
-  //       console.error("Error fetching auth status:", error);
-  //       setIsAuthenticated(false);
-  //       setRole(null);
-  //     }
-  //   }
-  //   fetchAuthStatus();
-  // },[]);
   const handleLogout = async () => {
     try {
       const res = await api.post("/logout", {}, { withCredentials: true });

@@ -43,14 +43,7 @@ export const WithdrawMoney = ({totalBalance, onBalanceUpdate, updateBalance, ema
                 date: new Date()
             });
 
-            onHistoryChange({
-                email: email,
-                type: "Debited",
-                amount: addMoney,
-                from: "wallet",
-                to: "Bank",
-                date: new Date()
-            });
+            await onHistoryChange();
 
             toast({
                 title: "Withdrawal successful.",

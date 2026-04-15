@@ -45,24 +45,18 @@ export const ChildDashBoard = ({data, setUser}) => {
   }
 };
 
-useEffect(() => {
-  const fetchUserdata = async () => {
-      try {
-          const res = await api.get(`/history`)
-          console.log(res.data);
-          setHistory(res.data.historydata);
-          console.log(history);
-          console.log(history.length)
-      } catch (error) {
-          console.log("error in history fetching",error);
-      }
+const fetchHistory = async () => {
+  try {
+    const res = await api.get('/history');
+    setHistory(res.data.historydata);
+  } catch (error) {
+    console.log("error in history fetching", error);
   }
-  fetchUserdata();
-}, []);
-
-const handleTransactionHistoryUpdate = (transaction) => {
-  setHistory((prevHistory) => [...(prevHistory || []), transaction]);
 };
+
+useEffect(() => {
+  fetchHistory();
+}, []);
 
 const handleNav = () => {
   nav('/savingplan')
@@ -76,11 +70,11 @@ const handleNav = () => {
       <Transaction history={history} />
       </div>
       <div className='balance-donut-container'>
-      <Balance totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} accNum={accountNumber} expDate={expDate} updateBalance={updateBalance} email={email} onHistoryChange={handleTransactionHistoryUpdate} />
+      <Balance totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} accNum={accountNumber} expDate={expDate} updateBalance={updateBalance} email={email} onHistoryChange={fetchHistory} />
       </div>
       <div className='button-action-container'>
-        <SendMoney totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} updateBalance={updateBalance} onHistoryChange={handleTransactionHistoryUpdate} email={email} accountNum={name}/>
-        <WithdrawMoney totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} updateBalance={updateBalance} email={email} onHistoryChange={handleTransactionHistoryUpdate}/>
+        <SendMoney totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} updateBalance={updateBalance} onHistoryChange={fetchHistory} email={email} accountNum={name}/>
+        <WithdrawMoney totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} updateBalance={updateBalance} email={email} onHistoryChange={fetchHistory}/>
         <div>
         <button className="action-buttons" onClick={handleNav}>
         <i className="fa-solid fa-piggy-bank"></i>{" "}

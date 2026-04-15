@@ -409,21 +409,22 @@ savingPlanRouter.patch(
       pot.potStatus = !pot.potStatus;
 
       const transactionType = pot.potStatus ? "reopen pot" : "closing pot";
+       const claimedAmount = previousStatus ? pot.currentBalance : 0;
 
+       if (!pot.potStatus) {
+         user.totalBalance += pot.currentBalance;
+         pot.currentBalance = 0;
+       }
       const transaction = new Transaction({
         email: req.user.email,
         type: transactionType,
-        amount: previousStatus ? pot.currentBalance : 0,
+        amount: claimedAmount,
         from: "saving_pot",
-        to: "Bank",
+        to: "wallet",
         potId: potId,
         date: new Date(),
       });
-
-      if (!pot.potStatus) {
-        user.totalBalance += pot.currentBalance;
-        pot.currentBalance = 0;
-      }
+      await transaction.save();
 
       await pot.save();
       user.history.push(transaction);

@@ -18,16 +18,16 @@ import { AuthContext } from './components/AuthApi';
 import { useContext } from 'react';
 
 const PrivateRoute = ({ children, role: requiredRole }) => {
-  
-  const { isAuthenticated, setIsAuthenticated, role, setRole , authLoading} = useContext(AuthContext);
 
-  if(authLoading){
+  const { isAuthenticated, setIsAuthenticated, role, setRole, authLoading } = useContext(AuthContext);
+
+  if (authLoading) {
     return null;
   }
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
-  } 
-  // this need to checck why we are not getting not athenticated
+  }
 
   if (requiredRole && role !== requiredRole) {
     return (

@@ -155,28 +155,11 @@ userRouter.delete('/users/:id',protect,authorize(["admin"]), async (req, res) =>
   userRouter.patch('/user/:id/balance',protect,authorize(["user","admin"]), async (req, res) => {
     const userId = req.params.id || req.user.id;
     const {balance} = req.body;
-    
+
     try {
-
-        const updateBalance = await User.findByIdAndUpdate(userId, {totalBalance : balance}, {new: true});
-        if(updateBalance){
-        const user=await User.findOne({email:req.user.email});
-        const transaction = new Transaction({
-            email:req.user.email,
-            type: "transfer", 
-            amount:balance,
-            from: "walete", 
-            to: "saving_pot",
-            date: new Date()
-        });
-        console.log("traansaction pache wallete 5",transaction);
-        
-        user.history.push(transaction); 
-      await transaction.save();      
-      await user.save();   
-
-            res.status(200).json({ message: 'Balance updated successfully', user: updateBalance });
-            
+        const updatedUser = await User.findByIdAndUpdate(userId, {totalBalance : balance}, {new: true});
+        if(updatedUser){
+            res.status(200).json({ message: 'Balance updated successfully', user: updatedUser });
         }else{
             res.status(404).json({ message: 'User not found' });
         }

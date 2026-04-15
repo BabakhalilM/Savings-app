@@ -2,57 +2,57 @@ import React, { useEffect, useState } from 'react';
 import '../styles/transaction.css';
 import api from './api';
 
-export const Transaction = () => {
+const DEBIT_TYPES = ['debited', 'transfer', 'sent','auto-deduction'];
+
+export const Transaction = ({ history: historyProp }) => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [historydata, setHistorydata] = useState([]);
+  const [ownHistory, setOwnHistory] = useState([]);
 
-  const toggleHistory = () => {
-    setIsHistoryOpen(!isHistoryOpen);
-    console.log("Toggled history open state:", !isHistoryOpen);
-  };
+  // Only fetch own data when used as the standalone /history page (no prop passed)
+  const isStandalone = historyProp === undefined;
 
   useEffect(() => {
+    if (!isStandalone) return;
     const fetchUserdata = async () => {
       try {
         setLoading(true);
-        const res = await api.get(`/history`);
-        setHistorydata(res.data.historydata);
-        console.log("Fetched history data:", res.data.historydata);
-      } catch (error) {
-        setError(error);
-        console.log("Error fetching history:", error);
+        const res = await api.get('/history');
+        setOwnHistory(res.data.historydata);
+      } catch (err) {
+        setError(err);
+        console.log("Error fetching history:", err);
       } finally {
         setLoading(false);
       }
     };
     fetchUserdata();
-  }, []);
+  }, [isStandalone]);
+
+  const displayHistory = isStandalone ? ownHistory : (historyProp || []);
+
+  const toggleHistory = () => setIsHistoryOpen((prev) => !prev);
 
   const groupByDate = (transactions) => {
-    return transactions.reduce((groupedTransactions, transaction) => {
-      const transactionDate = new Date(transaction.date).toLocaleDateString();
-      if (!groupedTransactions[transactionDate]) {
-        groupedTransactions[transactionDate] = [];
-      }
-      groupedTransactions[transactionDate].push(transaction);
-      return groupedTransactions;
+    return transactions.reduce((groups, transaction) => {
+      const date = new Date(transaction.date).toLocaleDateString();
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(transaction);
+      return groups;
     }, {});
   };
 
-  // Grouping transactions by date
-  const groupedTransactions = groupByDate(historydata);
+  const isDebit = (type) => DEBIT_TYPES.includes((type || '').toLowerCase());
 
+  const groupedTransactions = groupByDate(displayHistory);
 
   return (
     <div>
-      {/* Icon to toggle transaction history */}
       <div className="custom-transaction-icon-container">
         <i className="fa-solid fa-clock-rotate-left" onClick={toggleHistory}></i>
       </div>
 
-      {/* Transaction history container */}
       <div className={`custom-transaction-history-container ${isHistoryOpen ? 'open' : ''}`}>
         <div className="custom-transaction-close-btn-container">
           <i className="fa-solid fa-xmark" onClick={toggleHistory}></i>
@@ -69,9 +69,8 @@ export const Transaction = () => {
               Object.keys(groupedTransactions).map((date, index) => (
                 <div key={index} className="date-group">
                   <h4>{date}</h4>
-
-                  {groupedTransactions[date].map((transaction, index) => (
-                    <div key={index} className="custom-transaction-item-container">
+                  {groupedTransactions[date].map((transaction, i) => (
+                    <div key={i} className="custom-transaction-item-container">
                       <div className="custom-transaction-details-container">
                         <p>{transaction.type}</p>
                         <p>{new Date(transaction.date).toLocaleString()}</p>
@@ -82,14 +81,14 @@ export const Transaction = () => {
                         </p>
                       </div>
                       <div className="custom-transaction-amount-container">
-                        <p>{transaction.type === 'Debited' || transaction.type === 'Sent' ? '-' : '+'} ₹{transaction.amount}</p>
+                        <p>{isDebit(transaction.type) ? '-' : '+'} ₹{transaction.amount}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               ))
             ) : (
-              <p>No Transactions </p>
+              <p>No Transactions</p>
             )}
           </div>
         )}

@@ -1,15 +1,18 @@
-import { Box, Button, FormControl, FormLabel, Input, Text, VStack, useToast } from '@chakra-ui/react';
 import '../styles/login.css'
-import { Link } from "react-router-dom";
-import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useContext } from "react";
 import api from "./api";
 import Cookies from 'js-cookie';
+import { AuthContext } from "./AuthApi";
+import { useToast } from '@chakra-ui/react';
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+  const navigate = useNavigate();
+  const { setIsAuthenticated, setRole } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,15 +22,14 @@ const Login = () => {
       console.log("API response:", response);
 
       if (response.data && response.data.accessToken) {
-        // const { accessToken } = response.data;
-        const {accessToken,role}=response.data;
-        Cookies.set("accessToken",accessToken);
-        Cookies.set("role",role);
-        
+        const { accessToken, role } = response.data;
+        Cookies.set("accessToken", accessToken);
+        Cookies.set("role", role);
         localStorage.setItem("userid", response.data.userid);
-        // localStorage.setItem('accessToken', accessToken);
-        // const user = email;
-        // localStorage.setItem("user", user);
+
+        // Update auth context immediately so Nav updates right away
+        setIsAuthenticated(true);
+        setRole(role);
 
         toast({
           title: "Login successful.",
@@ -38,7 +40,7 @@ const Login = () => {
         });
 
         setTimeout(() => {
-          window.location.href = "/dashboard";
+          navigate("/dashboard");
         }, 1000);
       } else {
         throw new Error("Invalid response format");
@@ -56,8 +58,8 @@ const Login = () => {
         duration: 2000,
         isClosable: true,
       });
-    }finally {
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -91,10 +93,7 @@ const Login = () => {
               className='input-field-login'
             />
           </div>
-          <button
-            type="submit"
-            
-          >
+          <button type="submit">
             {loading ? "Loading..." : "Login"}
           </button>
         </div>

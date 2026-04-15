@@ -44,14 +44,7 @@ export const SendMoney = ({ totalBalance, onBalanceUpdate, updateBalance, onHist
         date: new Date(),
       });
 
-      onHistoryChange({
-        email: email,
-        type: "Transfer",
-        amount: amount,
-        from: accountNum,
-        to: holderName,
-        date: new Date(),
-      });
+      await onHistoryChange();
 
       toast({
         title: "Transaction successful.",

@@ -9,28 +9,31 @@ export const AuthProvider = ({ children }) => {
     const [totalBalance, setTotalBalance] = useState(0);
     const [user, setUser] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [authLoading,setAuthLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(true);
     const [error, setError] = useState(null);
     const userIdFromLocalStorage = localStorage.getItem("userid");
 
-    useEffect(()=>{
-      const checkAuth =async()=>{
-        try{
-          const res = await api.get("/auth/check");
-          if(res.data.isAuthenticated){
-            setIsAuthenticated(true);
-            setRole(res.data.role);
-          }
-        }catch(err){
-          setIsAuthenticated(false);
-          setRole(null);
-        }finally{
-          setAuthLoading(false);
-        }
-      }
-    },[])
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const res = await api.get("/auth/check");
+                if (res.data.isAuthenticated) {
+                    setIsAuthenticated(true);
+                    setRole(res.data.role);
+                }
+            } catch (error) {
+                setIsAuthenticated(false);
+                setRole(null);
+            } finally {
+                setAuthLoading(false);
+            }
+        };
+        checkAuth();
+    }, []);
+
     useEffect(() => {
         const fetchUserdata = async () => {
+            if (!userIdFromLocalStorage) return;
             try {
                 setLoading(true);
                 const res = await api.get(`/user/${userIdFromLocalStorage}`);
@@ -97,8 +100,9 @@ const handleTransactionHistoryUpdate = (transaction) => {
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated,setIsAuthenticated, authLoading,
-        role,setRole, totalBalance, handleBalanceUpdate, updateBalance
+        isAuthenticated, setIsAuthenticated,
+        role, setRole, totalBalance, handleBalanceUpdate, updateBalance,
+        authLoading
       }}
     >
       {children}

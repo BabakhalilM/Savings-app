@@ -101,8 +101,25 @@ export const SavingPlanPage = () => {
           });
           return;
         }
+        const userRes = await api.get(`/user/${userid}`);
+        const userBalance = userRes.data.totalBalance || 0;
+        if (addedAmount > userBalance) {
+          toast({
+            title: "Insufficient Balance",
+            description:
+              "You don't have enough balance to add to this saving plan.",
+            status: "warning",
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
+
         await api.patch(`/user/${userid}/savingplan/${id}`, {
-          currentBalance: balance + addedAmount,
+          currentBalance: addedAmount,
+        });
+        await api.patch(`/user/${userid}/balance`, {
+          balance: walletBalance - addedAmount,
         });
         setBalance((prevBalance) => prevBalance + addedAmount);
         toast({
@@ -215,7 +232,7 @@ export const SavingPlanPage = () => {
                     style={{
                       ...getShapeStyle(
                         data.category.shape,
-                        data.category.backgroundColor
+                        data.category.backgroundColor,
                       ),
                     }}
                     mr={4}
@@ -258,9 +275,9 @@ export const SavingPlanPage = () => {
                       backgroundColor: data.color || "blue",
                     }}
                   ></div>
-                </div >
-                <div >
-                  <span  className="progress-text-savingpage">
+                </div>
+                <div>
+                  <span className="progress-text-savingpage">
                     {Math.round((balance / data.targetAmount) * 100)}% of ₹
                     {data.targetAmount}
                   </span>
@@ -273,7 +290,7 @@ export const SavingPlanPage = () => {
                       {" "}
                       Next Deduction:{" "}
                       {calculateNextDeductionDate(
-                        data
+                        data,
                       ).toLocaleDateString()}{" "}
                     </>
                   )}
