@@ -14,8 +14,11 @@ const app = express();
 app.use(express.json());
 
 const corsOptions = {
-    origin: 'http://localhost:5173',  // Frontend URL
-    credentials: true,  // Allow cookies to be sent in cross-origin requests
+  origin: [
+    'http://localhost:5173',
+    'https://69dfcf3e27cbbb4b9afd66e2--deluxe-horse-d2c2a5.netlify.app'
+  ],
+  credentials: true,
 };
 
 app.use(cors(corsOptions)); 
