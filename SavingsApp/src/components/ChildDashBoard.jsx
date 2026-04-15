@@ -1,26 +1,28 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Greeting } from './Greeting'
 import { Balance } from './Balance';
 import { SendMoney } from './SendMoney';
 import { WithdrawMoney } from './WithdrawMoney';
-import { SaveButton } from './SaveButton';
-import { Was } from './Was';
 import { SavingPlans } from './SavingPlans';
-// import axios from 'axios';
 import api from './api';
 import { DonutChart } from './DonutChart';
 import '../App.css'
+import { Transaction } from './Transaction';
+import { DeActivated } from './DeActivated';
+import { SaveButton } from './SaveButton';
+import { Router, useNavigate } from 'react-router-dom';
+import { SavePlanList } from './SavePlanList';
 
 export const ChildDashBoard = ({data, setUser}) => {
-    let {name, totalBalance, accountNumber, expDate} = data;
+    let {name,email, totalBalance, accountNumber, expDate} = data;
     const [currentBalance, setCurrentBalance] = useState(totalBalance);
+    const [history, setHistory] = useState([]);
+    const nav = useNavigate();
 
     const handleBalanceUpdate = (newBalance) => {
         setCurrentBalance(newBalance);
         console.log("Updated Balance:", newBalance);
       };
-
-      console.log(totalBalance);
 
  const updateBalance = async (userId, currentBalance, amountToAddOrSubtract, isAddition) => {
   const moneyChange = parseInt(amountToAddOrSubtract, 10);
@@ -43,21 +45,54 @@ export const ChildDashBoard = ({data, setUser}) => {
   }
 };
 
+useEffect(() => {
+  const fetchUserdata = async () => {
+      try {
+          const res = await api.get(`/history`)
+          console.log(res.data);
+          setHistory(res.data.historydata);
+          console.log(history);
+          console.log(history.length)
+      } catch (error) {
+          console.log("error in history fetching",error);
+      }
+  }
+  fetchUserdata();
+}, []);
+
+const handleTransactionHistoryUpdate = (transaction) => {
+  setHistory((prevHistory) => [...(prevHistory || []), transaction]);
+};
+
+const handleNav = () => {
+  nav('/savingplan')
+}
 
 
   return (
     <div className='main-container'>
+      <div className='header-container'>
       <Greeting name={name} />
+      <Transaction history={history} />
+      </div>
       <div className='balance-donut-container'>
-      <Balance totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} accNum={accountNumber} expDate={expDate} updateBalance={updateBalance} />
+      <Balance totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} accNum={accountNumber} expDate={expDate} updateBalance={updateBalance} email={email} onHistoryChange={handleTransactionHistoryUpdate} />
       </div>
       <div className='button-action-container'>
-        <SendMoney totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} updateBalance={updateBalance}/>
-        <WithdrawMoney totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} updateBalance={updateBalance} />
-        <SaveButton totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} updateBalance={updateBalance} />
-        <Was />
+        <SendMoney totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} updateBalance={updateBalance} onHistoryChange={handleTransactionHistoryUpdate} email={email} accountNum={name}/>
+        <WithdrawMoney totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} updateBalance={updateBalance} email={email} onHistoryChange={handleTransactionHistoryUpdate}/>
+        <div>
+        <button className="action-buttons" onClick={handleNav}>
+        <i className="fa-solid fa-piggy-bank"></i>{" "}
+        <span className="button-text">Goals</span>
+      </button>
+      <p className="send-text">Goals</p>
+        </div>
       </div>
-      <SavingPlans totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} updateBalance={updateBalance}/>
+        <div  style={{ display: 'none' }}>
+          <SavingPlans totalBalance={totalBalance} onBalanceUpdate={handleBalanceUpdate} updateBalance={updateBalance}/>
+         </div>
+
     </div>
   )
 }

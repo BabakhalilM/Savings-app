@@ -4,7 +4,13 @@ import mongoose from 'mongoose';
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
+    unique:false,
     required: true,
+  },
+  role:{
+    type:String,
+    enum:["user","admin"],
+    default:"user"
   },
   password: {
     type: String,
@@ -20,15 +26,6 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  // helthcareamount:{
-  //   type:Number,
-  //   default:0,
-  // },
-  // Detuctionamount:{
-  //   type: Number,
-  //   default:0,
-  //   required:true
-  // },
   expDate: {
     type: Date, 
     required: false

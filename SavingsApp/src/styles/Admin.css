@@ -1,0 +1,317 @@
+/* Container for the admin panel */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+
+.admin-main-container{
+    display: flex;
+    font-family: 'Poppins';
+}
+
+
+
+.admin-container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+    color: #333;
+}
+
+.admin-container > h1 {
+    text-align: center;
+    font-size: 25px;
+    font-weight: 700;
+}
+
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+
+.search-container {
+    display: flex;
+    align-items: center;
+    border-radius: 30px;
+    margin-left: 40px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    background-color: white;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+    transition: all 0.3s ease;
+    width: 40%;
+    position: relative;
+  }
+
+
+  .search-input-admin {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 12px 16px;
+    font-size: 16px;
+    color: #333;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+  }
+ 
+  .search-input-admin::placeholder {
+    color: #888;
+    font-style: italic;
+  }
+  
+  .search-button-style {
+    background-color: #1e3a8a; 
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s ease;
+  }
+
+  .search-button-style:hover {
+    background-color: #2563eb; 
+  }
+
+  .search-button-style i {
+    pointer-events: none;
+  }
+
+
+.user-table th,
+.user-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.user-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+    color: #555;
+}
+
+.user-table td {
+    background-color: #fff;
+}
+
+.user-table tr:hover td {
+    background-color: #f1f5f8;
+}
+
+
+.actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.actions i {
+    cursor: pointer;
+    font-size: 16px;
+    padding: 1px;
+    border-radius: 5px;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.actions .fa-trash {
+    color: #d9534f;
+}
+
+.actions .fa-pen-to-square {
+    color: #5bc0de;
+}
+
+.actions .fa-trash:hover {
+    background-color: rgba(217, 83, 79, 0.1);
+    transform: scale(1.1);
+}
+
+.actions .fa-pen-to-square:hover {
+    background-color: rgba(91, 192, 222, 0.1);
+    transform: scale(1.1);
+}
+
+.admin-navigation {
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+    padding: 20px;
+    width: 250px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    color: #333;
+    gap: 10px;
+    text-decoration: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  .nav-item:hover {
+    background-color: #007bff;
+    color: #fff;
+  }
+  .nav-item.active {
+    background-color: #28a745;
+    color: #fff;
+  }
+  .nav-item .icon {
+    font-size: 20px;
+    margin-right: 15px;
+  }
+  .nav-item h1 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+  }   
+
+/* Modal styling */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    position: relative;
+}
+
+.modal-content h3 {
+    margin-bottom: 20px;
+}
+
+.modal-content label {
+    display: flex;
+    text-align: left;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+.modal-content input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+/* Modal buttons */
+.modal-content button {
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.modal-content button:first-of-type {
+    background-color: #5cb85c;
+    color: white;
+    margin-right: 5px;
+}
+
+.modal-content button:last-of-type {
+    background-color: #d9534f;
+    color: white;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 18px;
+    cursor: pointer;
+    color: #333;
+}
+.name-email-accountnumber{
+    text-align: left !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .admin-container {
+        padding: 10px;
+    }
+
+    .admin-container > h1 {
+        font-size: 22px;
+    }
+
+    .user-table th,
+    .user-table td {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .modal-content {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .modal-content button {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-container > h1 {
+        font-size: 20px;
+    }
+
+    .user-table th,
+    .user-table td {
+        padding: 8px;
+        font-size: 11px;
+    }
+
+    .actions i {
+        font-size: 16px;
+        padding: 4px;
+    }
+
+    .modal-content {
+        padding: 10px;
+    }
+
+    .modal-content button {
+        font-size: 14px;
+        padding: 8px;
+    }
+}

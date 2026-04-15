@@ -1,84 +1,167 @@
-
-import { Box, Heading, HStack, Text } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "../styles/Nav.css";
+import api from "./api";
+import { AuthContext } from "./AuthApi";
+import { useContext } from "react";
 
 const Nav = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, setIsAuthenticated, role, setRole } = useContext(AuthContext);
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    setIsAuthenticated(!!token);
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('userid');
-    setIsAuthenticated(false);
-    navigate('/'); 
+  // useEffect(() => {
+  //   async function fetchAuthStatus() {
+  //     try {
+  //       const response = await api.get("/api/auth/check");
+  //       console.log("data check" , response.data);
+  //       setIsAuthenticated(response.data.isAuthenticated);
+  //       console.log("isauthenticated",isAuthenticated);
+  //       setRole(response.data.role);
+  //       console.log("get function");
+  //     } catch (error) {
+  //       console.error("Error fetching auth status:", error);
+  //       setIsAuthenticated(false);
+  //       setRole(null);
+  //     }
+  //   }
+  //   fetchAuthStatus();
+  // },[]);
+  const handleLogout = async () => {
+    try {
+      const res = await api.post("/logout", {}, { withCredentials: true });
+      if (res.status === 200) {
+        setIsAuthenticated(false);
+        setRole(null);
+        localStorage.removeItem("userid");
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
+  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+
   return (
-    <Box as="nav" borderBottom="1px solid" borderColor="gray.200" pt={5} pb={5}>
-      <HStack justifyContent="space-between" maxW="1200px" mx="auto" pr={6} pl={6}>
-        <Heading as="h1" size="lg" color="blue.500">
-          Coins Stash
-        </Heading>
 
-        <HStack spacing={6}>
-          <Text fontWeight={900} as={Link} to='/' fontSize="lg" _hover={{ color: "blue.500" }}>
-            Home
-          </Text>
-
+    <nav className="nav">
+      <div className="nav-content">
+        <h1 className="nav-logo">Coins Stash</h1>
+        <ul className={`nav-links ${isMenuOpen ? "open" : ""}`}>
+          <li>
+            <Link className="nav-link" to="/">
+              Home
+            </Link>
+          </li>
           {isAuthenticated ? (
             <>
-            <Text
-            as={Link} 
-            to='/dashboard'
-            fontSize="lg"
-            _hover={{ color: "blue.500" }}
-            fontWeight={900}
-          >
-            DashBoard
-          </Text>
-          
-          <Text
-              as={Link} 
-              to='/'
-              onClick={handleLogout}
-              fontSize="lg"
-              _hover={{ color: "blue.500" }}
-              fontWeight={900}
-            >
-              Logout
-            </Text>
-          </>
+              <li>
+                <Link className="nav-link" to="/dashboard">
+                  DashBoard
+                </Link>
+              </li>
+              {role === "admin" && (
+                <li>
+                  <Link className="nav-link" to="/admin">
+                    Admin
+                  </Link>
+                </li>
+              )}
+              <li>
+                <Link
+                  className="nav-link logout-btn"
+                  to="/"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Link>
+              </li>
+            </>
           ) : (
             <>
-              <Text
-                as={Link}
-                to='/login'
-                fontSize="lg"
-                _hover={{ color: "blue.500" }}
-                fontWeight={900}
-              >
-                Login
-              </Text>
-              <Text
-                as={Link}
-                to='/register'
-                fontSize="lg"
-                _hover={{ color: "blue.500" }}
-                fontWeight={900}
-              >
-                Signup
-              </Text>
+              <li>
+                <Link className="nav-link" to="/login">
+                  Login
+                </Link>
+              </li>
+              <li>
+                <Link className="nav-link" to="/register">
+                  Signup
+                </Link>
+              </li>
             </>
           )}
-        </HStack>
-      </HStack>
-    </Box>
+        </ul>
+
+        {/* Menu Toggle for mobile */}
+        <button className="menu-toggle" onClick={toggleMenu}>
+          {isMenuOpen ? (
+            <i className="fa-solid fa-x"></i>
+          ) : (
+            <i className="fa-solid fa-bars"></i>
+          )}
+        </button>
+      </div>
+
+      {isMenuOpen && (
+        <div className="menu-body">
+          <ul>
+            <li>
+              <Link to="/" onClick={toggleMenu}>
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link to="/chart" onClick={toggleMenu}>
+                Chart
+              </Link>
+            </li>
+            {isAuthenticated ? (
+              <>
+                <li>
+                  <Link to="/dashboard" onClick={toggleMenu}>
+                    Dashboard
+                  </Link>
+                </li>
+                {role === "admin" && (
+                  <li>
+                    <Link to="/admin" onClick={toggleMenu}>
+                      Admin
+                    </Link>
+                  </li>
+                )}
+                <li>
+                  <Link
+                    to="/"
+                    onClick={() => {
+                      handleLogout();
+                      toggleMenu();
+                    }}
+                  >
+                    Logout
+                  </Link>
+                </li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link to="/login" onClick={toggleMenu}>
+                    Login
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/register" onClick={toggleMenu}>
+                    Signup
+                  </Link>
+                </li>
+              </>
+            )}
+          </ul>
+        </div>
+      )}
+    </nav>
   );
 };
 

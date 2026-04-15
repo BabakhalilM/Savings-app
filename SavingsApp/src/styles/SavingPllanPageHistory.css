@@ -1,0 +1,71 @@
+.transaction-icon-container {
+  position: fixed;
+  width: 100%;
+  left: 0;
+  padding: 20px;
+  background-color: #eff1ff;
+  cursor: pointer; 
+  z-index: 101;
+}
+
+.transaction-icon-container > i {
+  font-size: 20px; 
+  color: #a8a8a8;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 12px 30px 12px 15px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+  margin-left: 60%;
+}
+.transaction-history-container {
+  margin-top: 40px;
+  overflow-y: auto;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  padding: 20px;
+  display: block;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.transaction-close-btn-container {
+  text-align: right;
+  cursor: pointer;
+}
+.transaction-list {
+  margin-top: 10px;
+}
+
+.transaction-item-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #e9f0f4;
+  padding: 5px;
+  font-size: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.history-text-saving-page{
+  color: rgb(77, 76, 76);
+  text-align: center;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.transaction-details-container p {
+  margin: 0;
+  color: #333;
+}
+
+.transaction-amount-container p {
+  margin: 0;
+  font-weight: bold;
+}
+
+.transaction-amount-container p:nth-child(2) {
+  font-size: 12px;
+  color: #888;
+}
+

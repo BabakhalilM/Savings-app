@@ -1,137 +1,467 @@
-import express from 'express'
-import User from '../models/usermodel.js';
-import SavingPot from '../models/potsmodel.js';
-import mongoose from 'mongoose';
-import Transaction from '../models/historymodel.js';
-import { protect } from '../middleware/auth.js';
+import express from "express";
+import User from "../models/usermodel.js";
+import SavingPot from "../models/potsmodel.js";
+import mongoose from "mongoose";
+import Transaction from "../models/historymodel.js";
+import { authorize, protect } from "../middleware/auth.js";
+import Category from "../models/categorymodel.js";
 
 const savingPlanRouter = express.Router();
-
-savingPlanRouter.post(`/user/:userId/savingplan`, protect,async (req, res) => {
-    const { potPurpose, targetAmount, currentBalance, imoji, color } = req.body;
-
+savingPlanRouter.get(
+  "/users/:userId/savingplan/:potId",
+  protect,
+  async (req, res) => {
+    const { potId } = req.params;
     try {
-        const user = await User.findById(req.params.userId);
-        if (!user) {
-            return res.status(404).json({ message: "User Not found" });
-        }
-
-        const newSaving = new SavingPot({
-            potPurpose,
-            targetAmount,
-            currentBalance,
-            imoji,
-            color,
-            user: req.params.userId 
-        });
-
-        const savedPot = await newSaving.save();
-        user.pots.push(savedPot._id);
-        await user.save();
-
-        res.status(201).json({ message: 'Saving plan created', pot: savedPot });
+      const pot = await SavingPot.findById(potId);
+      if (!pot) {
+        res.send("pot is not There");
+      }
+      res.send(pot);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+      console.log(err);
+      res.status(500).send(err);
     }
+  }
+);
+
+savingPlanRouter.patch(
+  "/users/:userId/savingplanupdateplandeduction/:potId",
+  protect,
+  authorize(["user","admin"]),
+  async (req, res) => {
+    const { userId, potId } = req.params;
+    const {
+      autoDeduction,
+      endDate,
+      dailyAmount,
+      frequency,
+      dayOfWeek,
+      dayOfMonth,
+    } = req.body;
+    try {
+      const updatedPlan = await SavingPot.findByIdAndUpdate(
+        potId,
+        {
+          autoDeduction,
+          endDate,
+          dailyAmount,
+          frequency,
+          dayOfWeek,
+          dayOfMonth,
+        },
+        { new: true }
+      );
+
+      if (!updatedPlan) {
+        return res.status(404).send("Saving plan not found");
+      }
+
+      res.status(200).json(updatedPlan);
+    } catch (error) {
+      console.error("Error updating saving plan:", error);
+      res.status(500).send("Internal server error");
+    }
+  }
+);
+
+savingPlanRouter.post(`/user/:userId/savingplan`, protect,authorize(["user","admin"]), async (req, res) => {
+  let {
+    potPurpose,
+    targetAmount,
+    currentBalance,
+    imoji,
+    color,
+    category,
+    autoDeduction,
+    dailyAmount,
+    endDate,
+    frequency,
+    dayOfWeek,
+    dayOfMonth,
+  } = req.body;
+
+  console.log("potporpose", potPurpose);
+  console.log("targetamount", targetAmount);
+  console.log("currentBalence", currentBalance);
+  console.log(imoji);
+  console.log("color", color);
+  console.log("category", category);
+  console.log("autoDeduction", autoDeduction);
+  console.log("dailyamount", dailyAmount);
+  console.log("enddate", endDate);
+  console.log("frequency", frequency);
+  console.log("dayofweek", dayOfWeek);
+  console.log("dayofmonth", dayOfMonth);
+
+  // Default currentBalance to 0 if not provided
+  if (!currentBalance) {
+    currentBalance = 0;
+  }
+  let autoDeductionStatus = false;
+  if (autoDeduction) {
+    autoDeductionStatus = true;
+  }
+  try {
+    const user = await User.findOne({ email: req.user.email });
+
+    console.log("user", user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const startDate = new Date();
+    const savingPotData = {
+      potPurpose,
+      targetAmount,
+      currentBalance,
+      autoDeductionStatus,
+      category,
+      imoji,
+      color,
+      frequency,
+      dayOfWeek,
+      dayOfMonth,
+      autoDeduction,
+      dailyAmount,
+      startDate,
+      user: req.params.userId,
+    };
+    if (savingPotData.category) {
+      const categoryExists = await Category.findById(savingPotData.category);
+      if (!categoryExists) {
+        return res.status(400).json({ message: "Invalid category ID" });
+      }
+    }
+    // Add endDate only if it's provided
+    if (endDate) {
+      savingPotData.endDate = endDate;
+    }
+
+    const newSaving = new SavingPot(savingPotData);
+    console.log("new pot ceated one", newSaving);
+    const savedPot = await newSaving.save();
+    user.pots.push(savedPot._id);
+
+    // Create a transaction for the initial amount added to the saving pot
+    const transaction = new Transaction({
+      email: req.user.email,
+      type: "pot creation",
+      amount: currentBalance,
+      from: "wallet",
+      to: "saving_pot",
+      date: new Date(),
+    });
+    await transaction.save();
+    user.history.push(transaction);
+    console.log("traansaction post", transaction);
+    await user.save();
+
+    res.status(201).json({ message: "Saving plan created", pot: savedPot });
+    console.log("posted", newSaving);
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).json({ message: err.message });
+  }
 });
 
-savingPlanRouter.patch('/user/:userId/savingplan/:potId',protect, async (req, res) => {
+savingPlanRouter.patch(
+  "/user/:userId/savingplan/:potId",
+  protect,authorize(["user","admin"]),
+  async (req, res) => {
     const { potId, userId } = req.params;
     const { currentBalance } = req.body;
 
     try {
-        const user = await User.findById(userId);
-        if (!user) return res.status(404).json({ message: 'User not found' });
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
 
-        const pot = await SavingPot.findById(potId);
-        console.log("pot update",pot);
-        if (!pot) return res.status(404).json({ message: 'Saving plan not found' });
+      const pot = await SavingPot.findById(potId);
+      console.log("pot update", pot);
+      if (!pot)
+        return res.status(404).json({ message: "Saving plan not found" });
+      console.log(currentBalance);
 
-        if (currentBalance !== undefined) {
-            pot.currentBalance += currentBalance;
-        } else {
-            return res.status(400).json({ message: 'currentBalance is required' });
+      const transaction = new Transaction({
+        email: req.user.email,
+        type: "added money to saving plan",
+        amount: currentBalance,
+        from: "walete",
+        to: "saving_pot",
+        potId: potId,
+        date: new Date(),
+      });
+      console.log("traansaction patch", transaction);
+      await transaction.save();
+      await user.save();
+
+      const calculateDaysLeft = (goalDate) => {
+        const selectedDate = new Date(goalDate);
+        const currentDate = new Date();
+        const timeDiff = selectedDate - currentDate;
+        return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+      };
+
+      if (currentBalance !== undefined) {
+        pot.currentBalance += currentBalance;
+
+        if (pot.autoDeduction) {
+          let requiredAmountPerPeriod = 0;
+          const calculateRequiredAmount = () => {
+            const parsedGoal = parseInt(pot.targetAmount);
+            const parsedAmount = parseInt(pot.currentBalance);
+            const daysLeft = calculateDaysLeft(pot.endDate);
+
+            if (parsedGoal && parsedAmount && daysLeft > 0) {
+              const remainingAmount = parsedGoal - parsedAmount;
+
+              switch (pot.frequency) {
+                case "daily":
+                  requiredAmountPerPeriod = Math.ceil(
+                    remainingAmount / daysLeft
+                  );
+                  break;
+                case "weekly":
+                  const weeksLeft = Math.ceil(daysLeft / 7);
+                  requiredAmountPerPeriod = Math.ceil(
+                    remainingAmount / weeksLeft
+                  );
+                  break;
+                case "monthly":
+                  const monthsLeft = Math.ceil(daysLeft / 30);
+                  requiredAmountPerPeriod = Math.ceil(
+                    remainingAmount / monthsLeft
+                  );
+                  break;
+                default:
+                  requiredAmountPerPeriod = 0;
+              }
+            }
+          };
+
+          calculateRequiredAmount();
+          if (requiredAmountPerPeriod > 0) {
+            pot.dailyAmount = requiredAmountPerPeriod;
+          }
         }
-        console.log("creting transaction");
-        const transaction = new Transaction({
-            email:req.user.email,
-            type: "deposit", 
-            amount:currentBalance,
-            from: "walete", 
-            to: "saving_pot",
-            potId: potId,
-            date: new Date()
-        });
-        console.log("traansaction patch",transaction);
-        
-        user.history.push(transaction);
-            
-        await transaction.save();
-        await user.save(); 
-        console.log("user after saved",user);
+      } else {
+        return res.status(400).json({ message: "currentBalance is required" });
+      }
+      // console.log("creting transaction");
 
-        await pot.save();
+      user.history.push(transaction);
 
+      await transaction.save();
+      await user.save();
+      // console.log("user after saved",user);
 
-        res.json({ message: 'Saving plan balance updated', pot,transaction });
+      await pot.save();
+
+      res.json({ message: "Saving plan balance updated", pot, transaction });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
+  }
+);
+
+savingPlanRouter.patch(
+  "/user/:userId/savingplanautodeductionstatus/:potId",
+  protect,authorize(["user","admin"]),
+  async (req, res) => {
+    const { potId, userId } = req.params;
+    try {
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const pot = await SavingPot.findById(potId);
+      console.log("pot update", pot);
+      if (!pot)
+        return res.status(404).json({ message: "Saving plan not found" });
+
+      pot.autoDeductionStatus = !pot.autoDeductionStatus;
+      console.log("autodetucionstatus updated", pot.autoDeductionStatus);
+
+      await pot.save();
+      await user.save();
+
+      res.status(200).json({
+        message: "Saving plan autodetuctionstatus balance updated",
+        status: pot.autoDeductionStatus,
+        pots:user.pots,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+savingPlanRouter.patch(
+  "/user/:userId/savingsplanActivatingAutodeduct/:selectedPlanId",
+  protect,authorize(["user","admin"]),
+  async (req, res) => {
+    const { selectedPlanId, userId } = req.params;
+    const { deductionAmount } = req.body;
+    // console.log("potid", selectedPlanId);
+    // console.log(deductionAmount);
+
+    try {
+      const user = await User.findById(userId);
+
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const pot = await SavingPot.findById(selectedPlanId);
+      console.log("pot update", pot);
+      if (!pot)
+        return res.status(404).json({ message: "Saving plan not found" });
+
+      pot.autoDeductionStatus = true;
+      pot.autoDeduction = true;
+      pot.dailyAmount = deductionAmount;
+      console.log("pot updated daily amount", pot.dailyAmount);
+
+      console.log("autodetucion starts from now", pot.autoDeductionStatus);
+
+      await pot.save();
+      console.log("afterpot save");
+      await user.save();
+      console.log("user saving", pot);
+
+      res.status(200).json({
+        message: "Saving plan autodetuction Activeted & Daily-amount updated",
+        status: pot.autoDeduction,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+savingPlanRouter.get("/user/:userId/savingplan", protect,authorize(["user","admin"]), async (req, res) => {
+
+  const { userId } = req.params;
+  try {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+    // const user = await User.findById(userId).populate("pots");
+    const user = await User.findById(userId).populate({
+      path: "pots",
+      populate: {
+        path: "category", // Populate the 'category' field inside each pot
+      },
+    });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.send({pots:user.pots, user:user._id});
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
-savingPlanRouter.get('/user/:userId/savingplan/:potId', async (req, res) => {
+
+savingPlanRouter.get(
+  "/user/:userId/savingplan/:potId",
+  protect,authorize(["user","admin"]),
+  async (req, res) => {
     const { userId, potId } = req.params;
+    
+    try {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      const user = await User.findById(userId).populate({
+        path: "pots",
+        populate: {
+          path: "category", 
+        },
+      });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      if (!mongoose.Types.ObjectId.isValid(potId)) {
+        return res.status(400).json({ message: "Invalid pot ID" });
+      }
+      const pot = user.pots.find((pot) => pot._id.toString() === potId);
+      if (!pot) {
+        return res.status(404).json({ message: "Pot not found for this user" });
+      }
+      res.status(200).json(pot);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+savingPlanRouter.patch(
+  "/user/:userId/savingplandeactivate/:potId",
+  protect,authorize(["user","admin"]),
+  async (req, res) => {
+    const { potId, userId } = req.params;
 
     try {
-        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(potId)) {
-            return res.status(400).json({ message: 'Invalid user ID or pot ID' });
-        }
-        const user = await User.findById(userId).populate('pots');
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        const pot = user.pots.find(pot => pot._id.toString() === potId);
-        if (!pot) {
-            return res.status(404).json({ message: 'Saving plan not found' });
-        }
-        res.json(pot);
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).send("User not found");
+
+      const pot = await SavingPot.findById(potId);
+      if (!pot)
+        return res.status(404).json({ message: "Saving plan not found" });
+
+      const previousStatus = pot.potStatus;
+      pot.potStatus = !pot.potStatus;
+
+      const transactionType = pot.potStatus ? "reopen pot" : "closing pot";
+
+      const transaction = new Transaction({
+        email: req.user.email,
+        type: transactionType,
+        amount: previousStatus ? pot.currentBalance : 0,
+        from: "saving_pot",
+        to: "Bank",
+        potId: potId,
+        date: new Date(),
+      });
+
+      if (!pot.potStatus) {
+        user.totalBalance += pot.currentBalance;
+        pot.currentBalance = 0;
+      }
+
+      await pot.save();
+      user.history.push(transaction);
+      await user.save();
+      console.log(Transaction);
+
+      res.json({
+        message: "Saving plan status updated successfully",
+        transaction,
+        potStatus: pot.potStatus,
+        pots:user.pots,
+      });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
+  }
+);
+
+savingPlanRouter.put('/user/:userId/savingplandeactivate/:potId', async (req, res) => {
+  try {
+    
+    const updatePot = await SavingPot.findByIdAndUpdate(req.params.id, req.body, {new: true})
+    if (!updatePot) return res.status(404).json({ message: 'User not found' });
+      res.json({ message: 'User updated successfully', updatePot });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 });
 
-
-
-
-savingPlanRouter.delete('/user/:userId/savingplan/:potId', protect,async (req, res) => {
-    const {potId, userId} = req.params;
-    try {
-        const user = await User.findById(userId);
-        if(!user) res.status(404).send("user not found");
-        const pot = await SavingPot.findById(potId);
-        if (!pot) return res.status(404).json({ message: 'Saving plan not found' });
-        await SavingPot.deleteOne({ _id: potId });
-        user.pots = user.pots.filter(potId => potId.toString() !== pot._id.toString());
-        
-        const transaction = new Transaction({
-            email:req.user.email,
-            type: "deposit", 
-            amount:currentBalance,
-            from: "walete", 
-            to: "saving_pot",
-            potId: potId,
-            date: new Date()
-        });
-        console.log("traansaction",transaction);
-        
-        user.history.push(transaction);
-            
-        await user.save(); 
-        console.log(user);  
-
-        res.json({ message: 'Saving plan deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    } 
+savingPlanRouter.delete('/user/:userId/savingplandeactivate/:potId', async (req, res) => {
+  try {
+    
+    const updatePot = await SavingPot.findByIdAndDelete(req.params.potId)
+    if (!updatePot) return res.status(404).json({ message: 'User not found' });
+      res.json({ message: 'User updated successfully', updatePot });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 });
 
 export default savingPlanRouter;

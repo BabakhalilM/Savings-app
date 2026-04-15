@@ -4,79 +4,96 @@ import api from './api';
 
 export const Transaction = () => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [historydata,setHistorydata]=useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [historydata, setHistorydata] = useState([]);
+
   const toggleHistory = () => {
     setIsHistoryOpen(!isHistoryOpen);
+    console.log("Toggled history open state:", !isHistoryOpen);
   };
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const userIdFromLocalStorage = localStorage.getItem("userid");
 
-    useEffect(() => {
-        const fetchUserdata = async () => {
-            try {
-                setLoading(true);
-                const res = await api.get(`/history`)
-                setHistorydata(res.data);
-                console.log(historydata);
-                console.log(res.data);
-                setLoading(false);
-            } catch (error) {
-                setError(error);
-                console.log(error);
-            }
-        }
-        fetchUserdata();
-    }, []);
+  useEffect(() => {
+    const fetchUserdata = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get(`/history`);
+        setHistorydata(res.data.historydata);
+        console.log("Fetched history data:", res.data.historydata);
+      } catch (error) {
+        setError(error);
+        console.log("Error fetching history:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUserdata();
+  }, []);
+
+  const groupByDate = (transactions) => {
+    return transactions.reduce((groupedTransactions, transaction) => {
+      const transactionDate = new Date(transaction.date).toLocaleDateString();
+      if (!groupedTransactions[transactionDate]) {
+        groupedTransactions[transactionDate] = [];
+      }
+      groupedTransactions[transactionDate].push(transaction);
+      return groupedTransactions;
+    }, {});
+  };
+
+  // Grouping transactions by date
+  const groupedTransactions = groupByDate(historydata);
 
 
   return (
     <div>
-      <div className='icon-container'>
+      {/* Icon to toggle transaction history */}
+      <div className="custom-transaction-icon-container">
         <i className="fa-solid fa-clock-rotate-left" onClick={toggleHistory}></i>
       </div>
-      {isHistoryOpen && (
-        <div className="transaction-history">
-          <div className="close-container">
-            <i className="fa-solid fa-xmark" onClick={toggleHistory}></i>
-          </div>
-          <div className="transactions">
-            <h3>Transactions</h3>
-            <div className="transaction-item">
-              <div className="transaction-details">
-                <p>Top up</p>
-                <p>Today 1:53 PM</p>
-              </div>
-              <div className="transaction-amount">
-                <p>+₹100.00</p>
-                <p>Deposit</p>
-              </div>
-            </div>
 
-            <div className="transaction-item">
-              <div className="transaction-details">
-                <p>Transfer</p>
-                <p>Today 2:33 PM</p>
-              </div>
-              <div className="transaction-amount">
-                <p>-₹500.00</p>
-                <p>Send</p>
-              </div>
-            </div>
-
-            <div className="transaction-item">
-              <div className="transaction-details">
-                <p>Received</p>
-                <p>Today 3:32 PM</p>
-              </div>
-              <div className="transaction-amount">
-                <p>+₹50.00</p>
-                <p>Deposit</p>
-              </div>
-            </div>
-          </div>
+      {/* Transaction history container */}
+      <div className={`custom-transaction-history-container ${isHistoryOpen ? 'open' : ''}`}>
+        <div className="custom-transaction-close-btn-container">
+          <i className="fa-solid fa-xmark" onClick={toggleHistory}></i>
         </div>
-      )}
+
+        {loading ? (
+          <p>Loading transaction history...</p>
+        ) : error ? (
+          <p>Error loading history.</p>
+        ) : (
+          <div className="custom-transaction-list">
+            <h3>Transactions</h3>
+            {Object.keys(groupedTransactions).length > 0 ? (
+              Object.keys(groupedTransactions).map((date, index) => (
+                <div key={index} className="date-group">
+                  <h4>{date}</h4>
+
+                  {groupedTransactions[date].map((transaction, index) => (
+                    <div key={index} className="custom-transaction-item-container">
+                      <div className="custom-transaction-details-container">
+                        <p>{transaction.type}</p>
+                        <p>{new Date(transaction.date).toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p>
+                          <span>{transaction.from}</span> - to - <span>{transaction.to}</span>
+                        </p>
+                      </div>
+                      <div className="custom-transaction-amount-container">
+                        <p>{transaction.type === 'Debited' || transaction.type === 'Sent' ? '-' : '+'} ₹{transaction.amount}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))
+            ) : (
+              <p>No Transactions </p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
